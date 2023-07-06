@@ -9,7 +9,7 @@ AddEventHandler('onResourceStop', function(resource)
 end)
 
 local function ShowWeapons()
-    local playeritems = QBCore.Functions.GetPlayerData().items
+    local inv = exports.ox_inventory:GetPlayerItems(source)
     if IsPedArmed(cache.ped, 7) then
         TriggerEvent('weapons:ResetHolster')
         SetCurrentPedWeapon(cache.ped, `WEAPON_UNARMED`, true)
@@ -21,19 +21,19 @@ local function ShowWeapons()
         options = {}
     }
     local options = {}
-    for _, v in pairs(playeritems) do
-        if QBCore.Shared.Items[v.name]["type"] == 'weapon' and v.info.serie ~= 'Scratched' then
+    for _, item in pairs(inv) do
+        if string.find(item.name, "WEAPON_")and item.metadata.serial ~= 'Scratched' then
             options[#options+1] = {
-                title = QBCore.Shared.Items[v.name]["label"],
+                title = item.label,
                 description = 'Scratch Weapon Serial',
                 metadata = {
-                    {label = 'Serial', value = v.info.serie},
-                    {label = 'Slot', value = v.slot},
+                    {label = 'Serial', value = item.metadata.serial},
+                    {label = 'Slot', value = item.slot},
                 },
                 serverEvent = 'kevin-weaponscratch:scratchserial',
                 args = {
-                    weapon = v.name,
-                    slot = v.slot
+                    weapon = item.name,
+                    slot = item.slot
                 }
             }
         end
@@ -47,17 +47,20 @@ end
 CreateThread(function ()
     local coords = vector4(726.12, -1074.31, 28.31, 183.06)
     local hash = `prop_toolchest_05`
-    QBCore.Functions.LoadModel(hash)
+    lib.requestmodel(hash)
     ScratchTable = CreateObject(hash, coords.x, coords.y, coords.z -1, true, true, true)
     SetEntityHeading(ScratchTable, coords.w)
     FreezeEntityPosition(ScratchTable, true)
-
-    exports['qb-target']:AddTargetEntity(ScratchTable, {
+    exports['ox_target']:addBoxZone({
+        coords = coords,
+        size = vector3(1.7, 0.8, 1.7),
+        debug = false,
         options = {
             {
+                name = 'table1',
                 icon = 'fas fa-screwdriver',
                 label = 'Use Tools',
-                action = function()
+                onSelect = function()
                     ShowWeapons()
                 end,
             },
