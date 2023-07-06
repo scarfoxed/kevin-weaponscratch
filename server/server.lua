@@ -1,24 +1,15 @@
-local QBCore = exports['qb-core']:GetCoreObject()
-
 RegisterNetEvent('kevin-weaponscratch:scratchserial', function(data)
     local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
-    local weapon = Player.Functions.GetItemBySlot(data.slot)
-    if weapon.name ~= data.weapon then return end
-    local Item = Player.Functions.GetItemByName('steelfile')
-    if Item then
-        if weapon.info.serial ~= 'Scratched' then
-            if not Player.Functions.RemoveItem(weapon.name, 1, weapon.slot) then return end
-            TriggerClientEvent('inventory:client:ItemBox', src,  QBCore.Shared.Items[weapon.name], 'remove')
-            Wait(400)
-            local info = {}
-            info.serie = 'Scratched'
-            info.quality = weapon.info.quality
-            info.ammo = weapon.info.ammo
-            Player.Functions.AddItem(weapon.name, 1, weapon.slot, info)
-            TriggerClientEvent('inventory:client:ItemBox', src,  QBCore.Shared.Items[weapon.name], 'add')
-        end
+    local ox_inventory = exports.ox_inventory
+    local weapon = ox_inventory:GetSlot(src, data.slot)
+    local hasItem = ox_inventory:Search(src, 'count', 'steelfile')
+    if hasItem > 0 then
+            weapon.metadata.serial = 'Scratched'
+            ox_inventory:SetMetadata(src, data.slot, weapon.metadata)
+            --TriggerClientEvent("QBCore:Notify", src, 'Serial Successfully Scratched', "success")
+            lib.notify(source, { description = "Serial Successfully Scratched", type = 'success', })
     else
-        TriggerClientEvent("QBCore:Notify", src, 'You do not have any tools for this..', "error")
+        --TriggerClientEvent("QBCore:Notify", src, 'You do not have any tools for this..', "error")
+            lib.notify(source, { description = "You do not have any tools for this", type = 'error', })
     end
 end)
